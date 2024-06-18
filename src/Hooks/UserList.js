@@ -1,31 +1,44 @@
-import React from 'react'
 
-// User 컴포넌트
-const User = React.memo(function User({ user, onRemove, onToggle }) {
+import React, { useContext } from "react";
+// 24.06.17
+// 2. Context를 불러다 사용하기 ..
+import { UserDispatch } from "../App";
 
-    return (
-        <div>
-            <b
-                style={{
-                    cursor: 'pointer',  /* 마우스 커서 가져다 대면 손가락모양으로 바뀜. */
-                    color: user.active ? 'green' : 'black'  /* user.active가 true면 green, false면 black 처리 */
-                }}
-                onClick={() => onToggle(user.id)}   /* 클릭하면 onToggle이 실행됨. */
-            >{user.username}</b> <span>({user.email})</span>
-            <button onClick={() => onRemove(user.id)}>삭제</button>
-        </div>
-    );
+const User = React.memo(function User({user}) { //24.06.17  onRemove, onToggle 제거
+
+  // 24.06.17 
+  const dispatch = useContext(UserDispatch);
+
+  return (
+    <div>
+        <b 
+          style={{
+            cursor: 'pointer',
+            color: user.active ? 'green':'black'
+          }}
+          onClick={() => {
+            dispatch({type: 'TOGGLE_USER', id: user.id});
+          }}
+        >{user.username}</b> <span>({user.email})</span>
+        <button onClick={() => {
+          dispatch({type: 'REMOVE_USER', id: user.id})
+        }}>삭제</button>
+    </div>
+  );
 });
 
-function UserList({users, onRemove, onToggle}) {
 
-    return (
-        <div>
-            {users.map((user) => (
-                <User user={user} key={user.id} onRemove={onRemove} onToggle={onToggle}/>
-            ))} 
-        </div>
-    );
+function UserList({users}) {  //24.06.17  onRemove, onToggle 제거
+  
+  return (
+    <div>
+      {users.map((user) => (
+        <User 
+          user={user} 
+          key={user.id} 
+        />
+      ))}
+    </div>
+  );
 }
-
 export default React.memo(UserList);

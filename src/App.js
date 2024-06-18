@@ -1,12 +1,12 @@
 
-import { useCallback, useMemo, useReducer, useRef } from 'react';
+import React,{ useCallback, useMemo, useReducer, useRef } from 'react';
 import './App.css';
 // import Counter from './Hooks/Counter';
 import CreateUser from './Hooks/CreateUser';
 import UserList from './Hooks/UserList';
 import useInputs from './Hooks/useInputs';
 /* 모듈 디자인 로드 */
-import styled from './css/App.module.css';  // css모듈 디자인
+import styled from './css/App.module.css'; //css모듈 디자인
 
 function countActiveUsers(users) {
   console.log('활성 사용자 수를 세는 중....');
@@ -14,8 +14,8 @@ function countActiveUsers(users) {
 }
 
 const initialState = {
-  // //inputs : CreateUser에서 inputs 작업시 사용부분
-  // inputs: {    // custom hook 작업을 제외
+  //inputs : CreateUser에서 inputs 작업시 사용부분
+  // inputs: {      // custom hook작업을 제외
   //   username: '',
   //   email: ''
   // },
@@ -45,7 +45,8 @@ const initialState = {
 function reducer(state, action) {
   // action에 따른 state값 반화 로직 구현... 
   switch(action.type) {
-    // case 'CHANGE_INPUT':   // custom hook 사용시 제외. 이유는 useInputs 훅에서 구현되어 있기 때문
+    // custom hook 사용시 제외. 왜? useInputs훅에서 구현..
+    // case 'CHANGE_INPUT':   
     //   return {
     //     ...state,
     //     inputs: {
@@ -61,7 +62,9 @@ function reducer(state, action) {
     case 'TOGGLE_USER':
       return {
         ...state,
-        users: state.users.map(user => user.id === action.id ? {...user, active: !user.active} : user)
+        users: state.users.map(user =>
+          user.id === action.id ? {...user, active: !user.active}:user
+        )
       };
     case 'REMOVE_USER':
         return {
@@ -73,21 +76,27 @@ function reducer(state, action) {
   }
 }
 
+// 24.06.17 
+// 1. UserDispatch 라는 이름으로 Context를 내보내기
+export const UserDispatch = React.createContext(null);
+// 내보낸 것을 사용하고 싶은 경우... import { UserDispatch } from './App';
+
 
 function App() {
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const {users} = state;
-  // custom hooks 구현으로 다음을 바꿔서 사용
-  // const {username, email} = state.inputs; 
+  // custom hooks 구현으로 다음을 바꿔서 사용.
+  // const {username, email} = state.inputs;  
   const [{username, email}, onChange, reset] = useInputs({
     username: '',
     email: ''
   });
 
+
   const nextId = useRef(4);
 
-  // useInputs에 구현되어 있어서 주석 처리
+  // useInputs에 구현되어 있어서 주석 처리... 
   // const onChange = useCallback(e => {
   //   const {name, value} = e.target;
   //   dispatch({
@@ -106,33 +115,37 @@ function App() {
         email
       }
     });
-    reset();  // 유저가 등록되면 리셋됨
+    reset();
     nextId.current += 1;
-  }, [username, email, reset])
+  }, [username, email, reset]);
 
-  const onToggle = useCallback(id => {
+  // 24.06.17 ContextAPI 사용을 위해서 주석 처리... 
+  /* const onToggle = useCallback(id => {
     dispatch({
       type: 'TOGGLE_USER',
       id
     });
-  }, [])
+  },[]);
 
   const onRemove = useCallback(id => {
     dispatch({
       type: 'REMOVE_USER',
       id
     });
-  }, [])
+  },[]); */
 
   const count = useMemo(() => countActiveUsers(users), [users])
 
   return (
-    <>
-      <section className={styled.app_wrap}>
-        <p className='title'>CSS모듈 디자인</p>
+    <UserDispatch.Provider value={dispatch}> 
+    {/* 24.06.17 ContextAPI를 사용...
+    const [state, dispatch*] = useReducer(reducer, initialState);에 dispatch를 의미함. */}
+
+      {/* <section className={styled.app_wrap}>
+        <p className='title'>CSS모듈 디자인!</p>
       </section>
       <br/>
-      <hr/>
+      <hr /> */}
       {/* <Counter /> */}
       <CreateUser 
         username={username} 
@@ -140,9 +153,10 @@ function App() {
         onChange={onChange}
         onCreate={onCreate}
       />
-      <UserList users={users} onToggle={onToggle} onRemove={onRemove}/>
-      <div>활성사용자 수 : {count} </div>
-    </>
+      {/* 24.06.17 -> UserList에 onRemove, onToggle 제거 */}
+      <UserList users={users} />
+      <div>활성사용자 수 : {count}</div>
+    </UserDispatch.Provider>
   );
 }
 
